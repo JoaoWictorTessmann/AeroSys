@@ -7,7 +7,9 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import sistema.aeroporto.dto.PilotoDTO;
 import sistema.aeroporto.model.Piloto;
+import sistema.aeroporto.model.enums.PilotoStatus;
 import sistema.aeroporto.repository.PilotoRepository;
 import sistema.aeroporto.util.CpfUtils;
 
@@ -28,17 +30,26 @@ public class PilotoService {
     }
 
     // Método para buscar um piloto por CPF
-    public Piloto buscarPorCpf(String cpf) {
-        return pilotoRepository.findByCpf(cpf).orElse(null);
+    public Piloto buscarPorCpf(PilotoDTO pilotoDTO) {
+        return pilotoRepository.findByCpf(pilotoDTO.cpf()).orElseThrow(() -> new RuntimeException("Piloto não encontrado"));
     }
 
     // Método para buscar um piloto por matrícula
-    public Piloto buscarPorMatricula(String matricula) {
-        return pilotoRepository.findByMatricula(matricula).orElse(null);
+    public Piloto buscarPorMatricula(PilotoDTO matricula) {
+        return pilotoRepository.findByMatricula(matricula.matricula()).orElseThrow(() -> new RuntimeException("Piloto não encontrado"));
     }
 
     // Método para salvar um novo piloto
-    public Piloto salvarPiloto(Piloto piloto) {
+    public Piloto salvarPiloto(PilotoDTO pilotoDTO) {
+
+        Piloto piloto = new Piloto();
+        piloto.setNome(pilotoDTO.nome());
+        piloto.setIdade(pilotoDTO.idade());
+        piloto.setGenero(pilotoDTO.genero());
+        piloto.setCpf(pilotoDTO.cpf());
+        piloto.setDataRenovacao(LocalDate.now());
+        piloto.setMatricula(UUID.randomUUID().toString());
+        piloto.setHabilitacao(pilotoDTO.habilitacao());
 
         // --- Validações básicas ---
         if (piloto.getNome() == null || piloto.getNome().isBlank()) {
@@ -84,17 +95,15 @@ public class PilotoService {
     }
 
     // Método para atualizar um piloto existente
-    public Piloto atualizarPiloto(Long id, Piloto pilotoAtualizado) {
+    public Piloto atualizarPiloto(Long id, PilotoDTO pilotoAtualizado) {
 
         Piloto pilotoExistente = pilotoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Piloto não encontrado"));
 
-        pilotoExistente.setNome(pilotoAtualizado.getNome());
-        pilotoExistente.setStatus(pilotoAtualizado.getStatus());
-        pilotoExistente.setDataRenovacao(pilotoAtualizado.getDataRenovacao());
-        pilotoExistente.setHabilitacao(pilotoAtualizado.getHabilitacao());
-        pilotoExistente.setGenero(pilotoAtualizado.getGenero());
-        pilotoExistente.setIdade(pilotoAtualizado.getIdade());
+        pilotoExistente.setNome(pilotoAtualizado.nome());
+        pilotoExistente.setStatus(PilotoStatus.valueOf(pilotoAtualizado.status()));
+        pilotoExistente.setGenero(pilotoAtualizado.genero());
+        pilotoExistente.setIdade(pilotoAtualizado.idade());
 
         return pilotoRepository.save(pilotoExistente);
     }

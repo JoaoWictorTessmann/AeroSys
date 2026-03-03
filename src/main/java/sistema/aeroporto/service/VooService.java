@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import sistema.aeroporto.dto.VooDTO;
 import sistema.aeroporto.model.CompanhiaAerea;
 import sistema.aeroporto.model.Piloto;
 import sistema.aeroporto.model.Voo;
@@ -29,58 +30,68 @@ public class VooService {
     private CompanhiaAereaRepository companhiaAereaRepository;
 
     // Criar voo com todas as validações
-    public Voo criarVoo(Voo voo) {
+    public Voo criarVoo(VooDTO vooDTO) {
 
-        if (voo.getOrigem() == null || voo.getDestino() == null) {
+        if (vooDTO.origem() == null || vooDTO.destino() == null) {
             throw new RuntimeException("Origem e destino são obrigatórios");
         }
 
-        if (voo.getOrigem().equalsIgnoreCase(voo.getDestino())) {
+        if (vooDTO.origem().equalsIgnoreCase(vooDTO.destino())) {
             throw new RuntimeException("Origem e destino não podem ser iguais");
         }
 
-        if (voo.getHorarioPartidaPrevisto() == null) {
+        if (vooDTO.horarioPartidaPrevisto() == null) {
             throw new RuntimeException("Horário de partida é obrigatório");
         }
 
-        if (voo.getHorarioPartidaPrevisto().isBefore(LocalDateTime.now())) {
+        LocalDateTime horarioPartidaPrevisto = LocalDateTime.parse(vooDTO.horarioPartidaPrevisto());
+
+        if (horarioPartidaPrevisto.isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Horário de partida não pode ser no passado");
         }
 
-        if (voo.getPiloto() == null || voo.getPiloto().getId() == null) {
-            throw new RuntimeException("Piloto não encontrado");
+        if (vooDTO.piloto() == null || vooDTO.piloto().cpf() == null) {
+            throw new RuntimeException("Piloto é obrigatório");
         }
 
-        Piloto piloto = pilotoRepository.findById(voo.getPiloto().getId())
+        Piloto piloto = pilotoRepository.findByCpf(vooDTO.piloto().cpf())
                 .orElseThrow(() -> new RuntimeException("Piloto não encontrado"));
 
         boolean conflito = vooRepository.findByPiloto_Id(piloto.getId()).stream()
                 .anyMatch(v -> v.getHorarioPartidaPrevisto() != null &&
-                        v.getHorarioPartidaPrevisto().equals(voo.getHorarioPartidaPrevisto()));
+                        v.getHorarioPartidaPrevisto().equals(horarioPartidaPrevisto));
 
         if (conflito) {
             throw new RuntimeException("Piloto já está escalado para outro voo nesse horário");
         }
 
-        if (voo.getCompanhia() == null || voo.getCompanhia().getId() == null) {
+        if (vooDTO.companhia() == null || vooDTO.companhia().cnpj() == null) {
             throw new RuntimeException("Companhia aérea não encontrada");
         }
 
-        CompanhiaAerea companhia = companhiaAereaRepository.findById(voo.getCompanhia().getId())
+        CompanhiaAerea companhia = companhiaAereaRepository.findByCnpj(vooDTO.companhia().cnpj())
                 .orElseThrow(() -> new RuntimeException("Companhia aérea não encontrada"));
 
         if (companhia.getStatus() != CompanhiaAereaStatus.ATIVA) {
             throw new RuntimeException("Companhia não está ativa");
         }
 
-        if (voo.getCodigo() == null || voo.getCodigo().isBlank()) {
+        if (vooDTO.codigo() == null || vooDTO.codigo().isBlank()) {
             throw new RuntimeException("Código do voo é obrigatório");
         }
 
-        if (vooRepository.existsByCodigo(voo.getCodigo())) {
+        if (vooRepository.existsByCodigo(vooDTO.codigo())) {
             throw new RuntimeException("Código de voo já existente");
         }
 
+        Voo voo = new Voo();
+        voo.setPiloto(piloto);
+        voo.setCompanhia(companhia);
+        voo.setCodigo(vooDTO.codigo());
+        voo.setOrigem(vooDTO.origem());
+        voo.setDestino(vooDTO.destino());
+        voo.setHorarioPartidaPrevisto(horarioPartidaPrevisto);
+        voo.setHorarioChegadaPrevisto(horarioPartidaPrevisto.plusHours(4));
         voo.setStatus(VooStatus.AGENDADO);
 
         return vooRepository.save(voo);
@@ -113,8 +124,8 @@ public class VooService {
     }
 
     // Cancelar voo com motivo obrigatório
-    public Voo cancelarVoo(Long vooId, String motivo) {
-        if (motivo == null || motivo.trim().isEmpty()) {
+    public Voo cancelarVoo(Long vooId, VooDTO motivo) {
+        if (motivo == null || motivo.motivoCancelamento() == null || motivo.motivoCancelamento().trim().isEmpty()) {
             throw new RuntimeException("Motivo do cancelamento é obrigatório");
         }
 
@@ -122,7 +133,7 @@ public class VooService {
                 .orElseThrow(() -> new RuntimeException("Voo não encontrado"));
 
         voo.setStatus(VooStatus.CANCELADO);
-        voo.setMotivoCancelamento(motivo);
+        voo.setMotivoCancelamento(motivo.motivoCancelamento());
         return vooRepository.save(voo);
     }
 
@@ -138,8 +149,8 @@ public class VooService {
     }
 
     // Buscar voos por status
-    public List<Voo> buscarPorStatus(VooStatus status) {
-        return vooRepository.findByStatus(status);
+    public List<Voo> buscarPorStatus(VooDTO status) {
+        return vooRepository.findByStatus(VooStatus.valueOf(status.status()));
     }
 
     // Buscar voos por piloto
@@ -153,17 +164,20 @@ public class VooService {
     }
 
     // Atualizar informações do voo
-    public Voo atualizarVoo(Long vooId, Voo vooAtualizado) {
+    public Voo atualizarVoo(Long vooId, VooDTO vooAtualizado) {
         Voo vooExistente = vooRepository.findById(vooId)
                 .orElseThrow(() -> new RuntimeException("Voo não encontrado"));
 
         // Atualiza campos permitidos
-        vooExistente.setHorarioPartidaPrevisto(vooAtualizado.getHorarioPartidaPrevisto());
-        vooExistente.setHorarioChegadaPrevisto(vooAtualizado.getHorarioChegadaPrevisto());
-        vooExistente.setHorarioPartidaReal(vooAtualizado.getHorarioPartidaReal());
-        vooExistente.setHorarioChegadaReal(vooAtualizado.getHorarioChegadaReal());
-        vooExistente.setStatus(vooAtualizado.getStatus());
-        // Outros campos conforme necessário
+        LocalDateTime partidaReal =
+            LocalDateTime.parse(vooAtualizado.horarioPartidaReal());
+
+        LocalDateTime chegadaReal =
+            LocalDateTime.parse(vooAtualizado.horarioChegadaReal());
+
+            vooExistente.setHorarioPartidaReal(partidaReal);
+            vooExistente.setHorarioChegadaReal(chegadaReal);
+            vooExistente.setStatus(VooStatus.valueOf(vooAtualizado.status().toUpperCase()));
 
         return vooRepository.save(vooExistente);
     }

@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import sistema.aeroporto.dto.VooDTO;
 import sistema.aeroporto.model.Voo;
-import sistema.aeroporto.model.enums.VooStatus;
 import sistema.aeroporto.service.VooService;
 
 @RestController
@@ -19,7 +19,7 @@ public class VooController {
 
     // Criar voo
     @PostMapping
-    public ResponseEntity<Voo> criarVoo(@RequestBody Voo voo) {
+    public ResponseEntity<Voo> criarVoo(@RequestBody VooDTO voo) {
         Voo novoVoo = vooService.criarVoo(voo);
         return ResponseEntity.ok(novoVoo);
     }
@@ -30,9 +30,16 @@ public class VooController {
         return ResponseEntity.ok(vooService.listarTodos());
     }
 
+    //buscar voo por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Voo> buscarPorId(@PathVariable Long id) {
+        Voo voo = vooService.buscarPorId(id);
+        return ResponseEntity.ok(voo);
+    }
+
     // Buscar voos por status
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Voo>> buscarPorStatus(@PathVariable VooStatus status) {
+    public ResponseEntity<List<Voo>> buscarPorStatus(@PathVariable VooDTO status) {
         return ResponseEntity.ok(vooService.buscarPorStatus(status));
     }
 
@@ -57,14 +64,14 @@ public class VooController {
 
     // Cancelar voo com motivo
     @PutMapping("/cancelar/{vooId}")
-    public ResponseEntity<Voo> cancelarVoo(@PathVariable Long vooId, @RequestParam String motivo) {
+    public ResponseEntity<Voo> cancelarVoo(@PathVariable Long vooId, @RequestParam VooDTO motivo) {
         Voo voo = vooService.cancelarVoo(vooId, motivo);
         return ResponseEntity.ok(voo);
     }
 
     // Atualizar voo
-    @PutMapping("atualizar/{vooId}")
-    public ResponseEntity<Voo> atualizarVoo(@PathVariable Long vooId, @RequestBody Voo vooAtualizado) {
+    @PutMapping("/atualizar/{vooId}")
+    public ResponseEntity<Voo> atualizarVoo(@PathVariable Long vooId, @RequestBody VooDTO vooAtualizado) {
         Voo voo = vooService.atualizarVoo(vooId, vooAtualizado);
         return ResponseEntity.ok(voo);
     }

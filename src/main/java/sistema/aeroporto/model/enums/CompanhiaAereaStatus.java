@@ -4,5 +4,9 @@ public enum CompanhiaAereaStatus {
     ATIVA,
     INATIVA,
     SUSPENSA,
-    CANCELADA
+    CANCELADA;
+
+     public static CompanhiaAereaStatus fromString(String status) {
+        return CompanhiaAereaStatus.valueOf(status.toUpperCase());
+    }
 }

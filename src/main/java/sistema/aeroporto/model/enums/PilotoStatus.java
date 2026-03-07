@@ -6,5 +6,9 @@ public enum PilotoStatus {
     SUSPENSO,
     VENCIDO,
     APOSENTADO,
-    DESLIGADO
+    DESLIGADO;
+
+     public static PilotoStatus fromString(String status) {
+        return PilotoStatus.valueOf(status.toUpperCase());
+    }
 }

@@ -15,5 +15,9 @@ public enum VooStatus {
     CANCELADO,
     DESVIADO,
     EM_HOLD,
-    CONCLUIDO
+    CONCLUIDO;
+
+     public static VooStatus fromString(String status) {
+        return VooStatus.valueOf(status.toUpperCase());
+    }
 }

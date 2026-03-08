@@ -1,6 +1,7 @@
 package sistema.aeroporto.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
+import sistema.aeroporto.dto.CompanhiaAereaDTO;
 import sistema.aeroporto.model.CompanhiaAerea;
 import sistema.aeroporto.model.enums.CompanhiaAereaStatus;
 import sistema.aeroporto.repository.CompanhiaAereaRepository;
@@ -88,31 +90,53 @@ public class CompanhiaAereaServiceTest {
 
     @Test
     void deveSalvarCompanhiaComCnpjValido() {
-        CompanhiaAerea c = new CompanhiaAerea();
-        c.setCnpj("40510225000102");
+
+        String cnpj = "28.818.940/0001-01";
+        CompanhiaAereaDTO companhiaAereaDTO = new CompanhiaAereaDTO(
+                null,
+                "Azul",
+                cnpj,
+                true,
+                "ATIVA");
+
+        CompanhiaAerea entidade = new CompanhiaAerea();
+        entidade.setNome("Azul");
+        entidade.setCnpj(cnpj);
+        entidade.setSeguroAeronave(true);
+        entidade.setStatus(CompanhiaAereaStatus.ATIVA);
 
         try (MockedStatic<CnpjUtils> mock = mockStatic(CnpjUtils.class)) {
-            mock.when(() -> CnpjUtils.validarCnpj("40510225000102")).thenReturn(true);
 
-            when(companhiaRepository.existsByCnpj("40510225000102")).thenReturn(false);
-            when(companhiaRepository.save(c)).thenReturn(c);
+            mock.when(() -> CnpjUtils.validarCnpj(cnpj))
+                    .thenReturn(true);
 
-            CompanhiaAerea result = companhiaService.salvarCompanhia(c);
+            when(companhiaRepository.existsByCnpj(cnpj))
+                    .thenReturn(false);
 
-            assertEquals("40510225000102", result.getCnpj());
+            when(companhiaRepository.save(any(CompanhiaAerea.class)))
+                    .thenReturn(entidade);
+
+            CompanhiaAerea result = companhiaService.salvarCompanhia(companhiaAereaDTO);
+
+            assertEquals(cnpj, result.getCnpj());
         }
     }
 
     @Test
     void deveFalharAoSalvarCompanhiaComCnpjInvalido() {
-        CompanhiaAerea c = new CompanhiaAerea();
-        c.setCnpj("000");
+        String cnpj = "28.818.940/0001-01";
+        CompanhiaAereaDTO companhiaAereaDTO = new CompanhiaAereaDTO(
+                null,
+                "Azul",
+                cnpj,
+                true,
+                "ATIVA");
 
         try (MockedStatic<CnpjUtils> mock = mockStatic(CnpjUtils.class)) {
-            mock.when(() -> CnpjUtils.validarCnpj("000")).thenReturn(false);
+            mock.when(() -> CnpjUtils.validarCnpj(cnpj)).thenReturn(false);
 
             RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-                companhiaService.salvarCompanhia(c);
+                companhiaService.salvarCompanhia(companhiaAereaDTO);
             });
 
             assertEquals("CNPJ inválido", ex.getMessage());
@@ -121,15 +145,20 @@ public class CompanhiaAereaServiceTest {
 
     @Test
     void deveFalharAoSalvarCompanhiaComCnpjDuplicado() {
-        CompanhiaAerea c = new CompanhiaAerea();
-        c.setCnpj("40510225000102");
+        String cnpj = "28.818.940/0001-01";
+        CompanhiaAereaDTO companhiaAereaDTO = new CompanhiaAereaDTO(
+                null,
+                "Azul",
+                cnpj,
+                true,
+                "ATIVA");
 
         try (MockedStatic<CnpjUtils> mock = mockStatic(CnpjUtils.class)) {
-            mock.when(() -> CnpjUtils.validarCnpj("40510225000102")).thenReturn(true);
-            when(companhiaRepository.existsByCnpj("40510225000102")).thenReturn(true);
+            mock.when(() -> CnpjUtils.validarCnpj(cnpj)).thenReturn(true);
+            when(companhiaRepository.existsByCnpj(cnpj)).thenReturn(true);
 
             RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-                companhiaService.salvarCompanhia(c);
+                companhiaService.salvarCompanhia(companhiaAereaDTO);
             });
 
             assertEquals("CNPJ já cadastrado", ex.getMessage());
@@ -158,27 +187,45 @@ public class CompanhiaAereaServiceTest {
 
     @Test
     void deveAtualizarCompanhia() {
+
         CompanhiaAerea existente = new CompanhiaAerea();
         existente.setId(1L);
+        existente.setNome("Azul");
+        existente.setCnpj("40510225000102");
+        existente.setSeguroAeronave(true);
         existente.setStatus(CompanhiaAereaStatus.ATIVA);
 
-        CompanhiaAerea atualizada = new CompanhiaAerea();
-        atualizada.setStatus(CompanhiaAereaStatus.INATIVA);
+        CompanhiaAereaDTO dto = new CompanhiaAereaDTO(
+                null,
+                "Azul",
+                "40510225000102",
+                true,
+                "INATIVA");
 
-        when(companhiaRepository.findById(1L)).thenReturn(Optional.of(existente));
-        when(companhiaRepository.save(existente)).thenReturn(existente);
+        when(companhiaRepository.findById(1L))
+                .thenReturn(Optional.of(existente));
 
-        CompanhiaAerea result = companhiaService.atualizarCompanhia(1L, atualizada);
+        when(companhiaRepository.save(any(CompanhiaAerea.class)))
+                .thenReturn(existente);
+
+        CompanhiaAerea result = companhiaService.atualizarCompanhia(1L, dto);
 
         assertEquals(CompanhiaAereaStatus.INATIVA, result.getStatus());
     }
 
     @Test
     void deveFalharAoAtualizarCompanhiaInexistente() {
+
+        CompanhiaAereaDTO dto = new CompanhiaAereaDTO(
+                null,
+                "Azul",
+                "40510225000102",
+                true,
+                "ATIVA");
         when(companhiaRepository.findById(1L)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            companhiaService.atualizarCompanhia(1L, new CompanhiaAerea());
+            companhiaService.atualizarCompanhia(1L, dto);
         });
 
         assertEquals("Companhia não encontrada", ex.getMessage());

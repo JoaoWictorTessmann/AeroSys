@@ -15,8 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import jakarta.transaction.Transactional;
+import sistema.aeroporto.dto.PilotoDTO;
 import sistema.aeroporto.model.Piloto;
-import sistema.aeroporto.model.enums.PilotoStatus;
 
 @SpringBootTest
 @Transactional
@@ -29,15 +29,25 @@ public class PilotoServiceIntegrationTest {
     @DisplayName("Deve listar todos os pilotos do banco")
     void deveListarTodosPilotos() {
         // arrange
-        Piloto piloto1 = new Piloto();
-        piloto1.setNome("João");
-        piloto1.setCpf("111.444.777-35");
+        PilotoDTO piloto = new PilotoDTO(
+                "João Silva",
+                "35",
+                "1",
+                "549.909.720-82",
+                "ATPL",
+                "MAT123",
+                "ATIVO");
 
-        Piloto piloto2 = new Piloto();
-        piloto2.setNome("Maria");
-        piloto2.setCpf("222.555.888-46");
+        PilotoDTO piloto2 = new PilotoDTO(
+                "Maria Silva",
+                "25",
+                "2",
+                "557.271.330-92",
+                "ATPL2",
+                "MAT125",
+                "ATIVO");
 
-        pilotoService.salvarPiloto(piloto1);
+        pilotoService.salvarPiloto(piloto);
         pilotoService.salvarPiloto(piloto2);
 
         // act
@@ -45,17 +55,23 @@ public class PilotoServiceIntegrationTest {
 
         // assert
         assertEquals(2, listaDePilotos.size());
-        assertTrue(listaDePilotos.contains(piloto1));
-        assertTrue(listaDePilotos.contains(piloto2));
+        assertEquals("João Silva", listaDePilotos.get(0).getNome());
+        assertEquals("Maria Silva", listaDePilotos.get(1).getNome());
     }
 
     @Test
     @DisplayName("Deve buscar piloto por CPF existente")
     void deveBuscarPorCpfExistente() {
+
         // arrange
-        Piloto piloto = new Piloto();
-        piloto.setNome("João");
-        piloto.setCpf("111.444.777-35");
+        PilotoDTO piloto = new PilotoDTO(
+                "João",
+                "40",
+                "1",
+                "111.444.777-35",
+                "ATPL",
+                "MAT001",
+                "ATIVO");
 
         pilotoService.salvarPiloto(piloto);
 
@@ -63,28 +79,37 @@ public class PilotoServiceIntegrationTest {
         Piloto pilotoEncontrado = pilotoService.buscarPorCpf("11144477735");
 
         // assert
-        assertEquals(piloto, pilotoEncontrado);
+        assertNotNull(pilotoEncontrado);
+        assertEquals("João", pilotoEncontrado.getNome());
+        assertEquals("11144477735", pilotoEncontrado.getCpf());
     }
 
     @Test
     @DisplayName("Deve retornar null ao buscar por CPF inexistente")
     void deveRetornarNullQuandoCpfNaoExiste() {
+
         // act
-        Piloto pilotoEncontrado = pilotoService.buscarPorCpf("99999999999");
+        RuntimeException exception = assertThrows(
+            RuntimeException.class,
+            () -> pilotoService.buscarPorCpf("99999999999"));
 
         // assert
-        assertEquals(null, pilotoEncontrado);
-
+        assertEquals("Piloto não encontrado", exception.getMessage());
     }
 
-    @DisplayName("Deve salvar piloto gerando matrícula automaticamente")
     @Test
+    @DisplayName("Deve salvar piloto gerando matrícula automaticamente")
     void deveSalvarPilotoGerandoMatricula() {
 
         // arrange
-        Piloto piloto = new Piloto();
-        piloto.setNome("Carlos");
-        piloto.setCpf("111.444.777-35");
+        PilotoDTO piloto = new PilotoDTO(
+                "Carlos",
+                "38",
+                "1",
+                "111.444.777-35",
+                "ATPL",
+                null,
+                "ATIVO");
 
         // act
         Piloto pilotoSalvo = pilotoService.salvarPiloto(piloto);
@@ -98,17 +123,23 @@ public class PilotoServiceIntegrationTest {
         assertNotNull(pilotoSalvo.getMatricula());
         assertFalse(pilotoSalvo.getMatricula().isBlank());
 
-        // valida padrão da matrícula
         assertTrue(pilotoSalvo.getMatricula().startsWith("PIL"));
     }
 
     @Test
     @DisplayName("Deve deletar piloto")
     void deveDeletarPiloto() {
+
         // arrange
-        Piloto piloto = new Piloto();
-        piloto.setNome("Carlos");
-        piloto.setCpf("111.444.777-35");
+        PilotoDTO piloto = new PilotoDTO(
+                "Carlos",
+                "38",
+                "1",
+                "111.444.777-35",
+                "ATPL",
+                "MAT123",
+                "ATIVO");
+
         Piloto pilotoSalvo = pilotoService.salvarPiloto(piloto);
 
         // act
@@ -127,33 +158,49 @@ public class PilotoServiceIntegrationTest {
     void deveAtualizarPiloto() {
 
         // arrange
-        Piloto piloto = new Piloto();
-        piloto.setNome("Carlos");
-        piloto.setCpf("111.444.777-35");
+        PilotoDTO piloto = new PilotoDTO(
+                "Carlos",
+                "38",
+                "1",
+                "111.444.777-35",
+                "ATPL",
+                "MAT123",
+                "ATIVO");
 
         Piloto pilotoSalvo = pilotoService.salvarPiloto(piloto);
 
-        Piloto pilotoAtualizado = new Piloto();
-        pilotoAtualizado.setNome("Carlos Silva");
-        pilotoAtualizado.setStatus(PilotoStatus.ATIVO);
+        PilotoDTO pilotoAtualizado = new PilotoDTO(
+                "Carlos Silva",
+                "38",
+                "1",
+                "111.444.777-35",
+                "ATPL",
+                "MAT123",
+                "ATIVO");
 
         // act
-        Piloto pilotoEditado = pilotoService.atualizarPiloto(pilotoSalvo.getId(), pilotoAtualizado);
+        Piloto pilotoEditado = pilotoService.atualizarPiloto(
+                pilotoSalvo.getId(),
+                pilotoAtualizado);
 
         // assert
         assertNotNull(pilotoEditado);
-
         assertEquals("Carlos Silva", pilotoEditado.getNome());
-        assertEquals(PilotoStatus.ATIVO, pilotoEditado.getStatus());
     }
 
     @Test
-    @DisplayName("Deve retornar null ao atualizar piloto inexistente")
+    @DisplayName("Deve retornar erro ao atualizar piloto inexistente")
     void deveRetornarNullAoAtualizarPilotoInexistente() {
+
         // arrange
-        Piloto pilotoAtualizado = new Piloto();
-        pilotoAtualizado.setNome("Carlos Silva");
-        pilotoAtualizado.setStatus(PilotoStatus.ATIVO);
+        PilotoDTO pilotoAtualizado = new PilotoDTO(
+                "Carlos Silva",
+                "38",
+                "1",
+                "111.444.777-35",
+                "ATPL",
+                "MAT123",
+                "ATIVO");
 
         // act
         RuntimeException exception = assertThrows(

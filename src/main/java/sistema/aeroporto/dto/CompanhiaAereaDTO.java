@@ -6,4 +6,9 @@ public record CompanhiaAereaDTO(
     String cnpj,
     Boolean seguroAeronave,
     String status
-){}
+){
+
+    public CompanhiaAereaDTO(String nome, String cnpj, Boolean seguroAeronave, String status) {
+        this(null, nome, cnpj, seguroAeronave, status);
+    }
+}

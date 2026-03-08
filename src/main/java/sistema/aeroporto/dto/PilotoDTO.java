@@ -9,4 +9,8 @@ public record PilotoDTO(
     String habilitacao,
     String matricula,
     String status
-){}
+){
+    public PilotoDTO(String nome, String idade, String genero, String cpf, String habilitacao, String matricula, String status) {
+        this(null, nome, idade, genero, cpf, habilitacao, matricula, status);
+    }
+}

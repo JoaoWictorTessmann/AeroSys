@@ -226,7 +226,7 @@ public class VooServiceIntegrationTest {
                 RuntimeException.class,
                 () -> vooService.criarVoo(vooDTO));
 
-        assertEquals("Companhia aérea não encontrada", exception.getMessage());
+        assertEquals("Companhia não encontrada", exception.getMessage());
     }
 
     @Test

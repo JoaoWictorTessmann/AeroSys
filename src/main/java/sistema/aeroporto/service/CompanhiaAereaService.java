@@ -49,6 +49,10 @@ public class CompanhiaAereaService {
         if (companhiaAereaRepository.existsByCnpj(companhiaDTO.cnpj())) {
             throw new RuntimeException("CNPJ já cadastrado");
         }
+        if (companhiaAereaRepository.existsByNome(companhiaDTO.nome())) {
+            throw new RuntimeException("Já existe uma Companhia Aerea com este nome");
+        }
+
         CompanhiaAerea companhia = new CompanhiaAerea();
         companhia.setNome(companhiaDTO.nome());
         companhia.setCnpj(companhiaDTO.cnpj());

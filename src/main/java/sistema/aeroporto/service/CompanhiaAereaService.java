@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import sistema.aeroporto.dto.CompanhiaAereaDTO;
+import sistema.aeroporto.exception.CnpjInvalidoException;
+import sistema.aeroporto.exception.CnpjJaCadastradoException;
+import sistema.aeroporto.exception.NomeJaCadastradoException;
+import sistema.aeroporto.exception.NotFoundCompanhiaAereaException;
 import sistema.aeroporto.model.CompanhiaAerea;
 import sistema.aeroporto.model.enums.CompanhiaAereaStatus;
 import sistema.aeroporto.repository.CompanhiaAereaRepository;
@@ -21,7 +25,7 @@ public class CompanhiaAereaService {
     // Buscar companhia por ID
     public CompanhiaAerea buscarPorId(Long id) {
         return companhiaAereaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Companhia não encontrada"));
+                .orElseThrow(() -> new NotFoundCompanhiaAereaException());
     }
 
     // Listar todas as companhias aéreas
@@ -32,25 +36,25 @@ public class CompanhiaAereaService {
     // Buscar companhia por nome
     public CompanhiaAerea buscarPorNome(String nome) {
         return companhiaAereaRepository.findByNome(nome)
-                .orElseThrow(() -> new RuntimeException("Companhia não encontrada"));
+                .orElseThrow(() -> new NotFoundCompanhiaAereaException());
     }
 
     // Buscar companhia por CNPJ
     public CompanhiaAerea buscarPorCnpj(String cnpj) {
         return companhiaAereaRepository.findByCnpj(cnpj)
-                .orElseThrow(() -> new RuntimeException("Companhia não encontrada"));
+                .orElseThrow(() -> new NotFoundCompanhiaAereaException());
     }
 
     // Salvar nova companhia aérea
     public CompanhiaAerea salvarCompanhia(CompanhiaAereaDTO companhiaDTO) {
         if (!CnpjUtils.validarCnpj(companhiaDTO.cnpj())) {
-            throw new RuntimeException("CNPJ inválido");
+            throw new CnpjInvalidoException();
         }
         if (companhiaAereaRepository.existsByCnpj(companhiaDTO.cnpj())) {
-            throw new RuntimeException("CNPJ já cadastrado");
+            throw new CnpjJaCadastradoException();
         }
         if (companhiaAereaRepository.existsByNome(companhiaDTO.nome())) {
-            throw new RuntimeException("Já existe uma Companhia Aerea com este nome");
+            throw new NomeJaCadastradoException();
         }
 
         CompanhiaAerea companhia = new CompanhiaAerea();
@@ -72,7 +76,7 @@ public class CompanhiaAereaService {
     // Deletar companhia aérea por ID
     public void deletarCompanhia(Long id) {
         if (!companhiaAereaRepository.existsById(id)) {
-            throw new RuntimeException("Companhia não encontrada");
+            throw new NotFoundCompanhiaAereaException();
         }
         companhiaAereaRepository.deleteById(id);
     }
@@ -80,7 +84,7 @@ public class CompanhiaAereaService {
     // Atualizar companhia aérea existente
     public CompanhiaAerea atualizarCompanhia(Long id, CompanhiaAereaDTO companhiaAtualizada) {
         CompanhiaAerea companhiaExistente = companhiaAereaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Companhia não encontrada"));
+                .orElseThrow(() -> new NotFoundCompanhiaAereaException());
 
         companhiaExistente.setNome(companhiaAtualizada.nome());
         companhiaExistente.setCnpj(companhiaAtualizada.cnpj());

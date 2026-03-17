@@ -7,6 +7,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import sistema.aeroporto.dto.VooDTO;
+import sistema.aeroporto.exception.CodigoVooExistenteException;
+import sistema.aeroporto.exception.CodigoVooObrigatorioException;
+import sistema.aeroporto.exception.CompanhiaNaoAtivaException;
+import sistema.aeroporto.exception.HorarioPartidaObrigatorioException;
+import sistema.aeroporto.exception.HorarioPartidaPassadoException;
+import sistema.aeroporto.exception.MotivoCancelamentoObrigatorioException;
+import sistema.aeroporto.exception.NotFoundCompanhiaAereaException;
+import sistema.aeroporto.exception.NotFoundPilotoException;
+import sistema.aeroporto.exception.NotFoundVooException;
+import sistema.aeroporto.exception.OrigemDestinoIguaisException;
+import sistema.aeroporto.exception.OrigemDestinoObrigatorioException;
+import sistema.aeroporto.exception.PilotoInativoException;
+import sistema.aeroporto.exception.PilotoObrigatorioException;
+import sistema.aeroporto.exception.PilotoOutroVooException;
+import sistema.aeroporto.exception.SemPilotoException;
+import sistema.aeroporto.exception.SomenteAgendadoException;
 import sistema.aeroporto.model.CompanhiaAerea;
 import sistema.aeroporto.model.Piloto;
 import sistema.aeroporto.model.Voo;
@@ -33,55 +49,55 @@ public class VooService {
     public Voo criarVoo(VooDTO vooDTO) {
 
         if (vooDTO.origem() == null || vooDTO.destino() == null) {
-            throw new RuntimeException("Origem e destino são obrigatórios");
+            throw new OrigemDestinoObrigatorioException();
         }
 
         if (vooDTO.origem().equalsIgnoreCase(vooDTO.destino())) {
-            throw new RuntimeException("Origem e destino não podem ser iguais");
+            throw new OrigemDestinoIguaisException();
         }
 
         if (vooDTO.horarioPartidaPrevisto() == null) {
-            throw new RuntimeException("Horário de partida é obrigatório");
+            throw new HorarioPartidaObrigatorioException();
         }
 
         LocalDateTime horarioPartidaPrevisto = LocalDateTime.parse(vooDTO.horarioPartidaPrevisto());
 
         if (horarioPartidaPrevisto.isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Horário de partida não pode ser no passado");
+            throw new HorarioPartidaPassadoException();
         }
 
         if (vooDTO.piloto() == null || vooDTO.piloto().cpf() == null) {
-            throw new RuntimeException("Piloto é obrigatório");
+            throw new PilotoObrigatorioException();
         }
 
         Piloto piloto = pilotoRepository.findByCpf(vooDTO.piloto().cpf())
-                .orElseThrow(() -> new RuntimeException("Piloto não encontrado"));
+                .orElseThrow(() -> new NotFoundPilotoException());
 
         boolean conflito = vooRepository.findByPiloto_Id(piloto.getId()).stream()
                 .anyMatch(v -> v.getHorarioPartidaPrevisto() != null &&
                         v.getHorarioPartidaPrevisto().equals(horarioPartidaPrevisto));
 
         if (conflito) {
-            throw new RuntimeException("Piloto já está escalado para outro voo nesse horário");
+            throw new PilotoOutroVooException();
         }
 
         if (vooDTO.companhia() == null || vooDTO.companhia().cnpj() == null) {
-            throw new RuntimeException("Companhia aérea não encontrada");
+            throw new NotFoundCompanhiaAereaException();
         }
 
         CompanhiaAerea companhia = companhiaAereaRepository.findByCnpj(vooDTO.companhia().cnpj())
-                .orElseThrow(() -> new RuntimeException("Companhia aérea não encontrada"));
+                .orElseThrow(() -> new NotFoundCompanhiaAereaException());
 
         if (companhia.getStatus() != CompanhiaAereaStatus.ATIVA) {
-            throw new RuntimeException("Companhia não está ativa");
+            throw new CompanhiaNaoAtivaException();
         }
 
         if (vooDTO.codigo() == null || vooDTO.codigo().isBlank()) {
-            throw new RuntimeException("Código do voo é obrigatório");
+            throw new CodigoVooObrigatorioException();
         }
 
         if (vooRepository.existsByCodigo(vooDTO.codigo())) {
-            throw new RuntimeException("Código de voo já existente");
+            throw new CodigoVooExistenteException();
         }
 
         Voo voo = new Voo();
@@ -100,20 +116,20 @@ public class VooService {
     public Voo iniciarVoo(Long vooId) {
 
         Voo voo = vooRepository.findById(vooId)
-                .orElseThrow(() -> new RuntimeException("Voo não encontrado"));
+                .orElseThrow(() -> new NotFoundVooException());
 
         if (voo.getStatus() != VooStatus.AGENDADO) {
-            throw new RuntimeException("Somente voos agendados podem ser iniciados");
+            throw new SomenteAgendadoException();
         }
 
         Piloto piloto = voo.getPiloto();
 
         if (piloto == null) {
-            throw new RuntimeException("Voo sem piloto");
+            throw new SemPilotoException();
         }
 
         if (piloto.getStatus() == PilotoStatus.INATIVO) {
-            throw new RuntimeException("Piloto não pode iniciar o voo");
+            throw new PilotoInativoException();
         }
 
         voo.setStatus(VooStatus.EM_VOO);
@@ -125,11 +141,11 @@ public class VooService {
     // Cancelar voo com motivo obrigatório
     public Voo cancelarVoo(Long vooId, VooDTO motivo) {
         if (motivo == null || motivo.motivoCancelamento() == null || motivo.motivoCancelamento().trim().isEmpty()) {
-            throw new RuntimeException("Motivo do cancelamento é obrigatório");
+            throw new MotivoCancelamentoObrigatorioException();
         }
 
         Voo voo = vooRepository.findById(vooId)
-                .orElseThrow(() -> new RuntimeException("Voo não encontrado"));
+                .orElseThrow(() -> new NotFoundVooException());
 
         voo.setStatus(VooStatus.CANCELADO);
         voo.setMotivoCancelamento(motivo.motivoCancelamento());
@@ -144,7 +160,7 @@ public class VooService {
     // Buscar por id
     public Voo buscarPorId(Long id) {
         return vooRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Voo não encontrado"));
+                .orElseThrow(() -> new NotFoundVooException());
     }
 
     // Buscar voos por status
@@ -165,7 +181,7 @@ public class VooService {
     // Atualizar informações do voo
     public Voo atualizarVoo(Long vooId, VooDTO vooAtualizado) {
         Voo vooExistente = vooRepository.findById(vooId)
-                .orElseThrow(() -> new RuntimeException("Voo não encontrado"));
+                .orElseThrow(() -> new NotFoundVooException());
 
         // Atualiza campos permitidos
         LocalDateTime partidaReal =

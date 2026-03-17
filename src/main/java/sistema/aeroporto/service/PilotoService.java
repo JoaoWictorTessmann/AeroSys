@@ -8,6 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import sistema.aeroporto.dto.PilotoDTO;
+import sistema.aeroporto.exception.CpfInvalidoException;
+import sistema.aeroporto.exception.CpfJaCadastradoException;
+import sistema.aeroporto.exception.CpfObrigatorioException;
+import sistema.aeroporto.exception.NomeObrigatorioException;
+import sistema.aeroporto.exception.NotFoundPilotoException;
 import sistema.aeroporto.model.Piloto;
 import sistema.aeroporto.model.enums.PilotoStatus;
 import sistema.aeroporto.repository.PilotoRepository;
@@ -22,7 +27,7 @@ public class PilotoService {
     // Buscar piloto por ID
     public Piloto buscarPorId(Long id) {
         return pilotoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Piloto não encontrado"));
+                .orElseThrow(() -> new NotFoundPilotoException());
     }
 
     // Método para listar todos os pilotos
@@ -33,13 +38,13 @@ public class PilotoService {
     // Método para buscar um piloto por CPF
     public Piloto buscarPorCpf(String cpf) {
         return pilotoRepository.findByCpf(cpf)
-                .orElseThrow(() -> new RuntimeException("Piloto não encontrado"));
+                .orElseThrow(() -> new NotFoundPilotoException());
     }
 
     // Método para buscar um piloto por matrícula
     public Piloto buscarPorMatricula(String matricula) {
         return pilotoRepository.findByMatricula(matricula)
-                .orElseThrow(() -> new RuntimeException("Piloto não encontrado"));
+                .orElseThrow(() -> new NotFoundPilotoException());
     }
 
     // Método para salvar um novo piloto
@@ -62,23 +67,23 @@ public class PilotoService {
 
         // --- Validações básicas ---
         if (piloto.getNome() == null || piloto.getNome().isBlank()) {
-            throw new RuntimeException("Nome do piloto é obrigatório");
+            throw new NomeObrigatorioException();
         }
 
         if (piloto.getCpf() == null || piloto.getCpf().isBlank()) {
-            throw new RuntimeException("CPF é obrigatório");
+            throw new CpfObrigatorioException();
         }
 
         // Limpa o CPF antes de validar (remove pontos e traços)
         piloto.setCpf(CpfUtils.limpar(piloto.getCpf()));
 
         if (!CpfUtils.validarCpf(piloto.getCpf())) {
-            throw new RuntimeException("CPF inválido");
+            throw new CpfInvalidoException();
         }
 
         // Verificar se CPF já está cadastrado
         if (pilotoRepository.existsByCpf(piloto.getCpf())) {
-            throw new RuntimeException("CPF já cadastrado");
+            throw new CpfJaCadastradoException();
         }
 
         // --- Geração de matrícula (caso não exista) ---
@@ -106,7 +111,7 @@ public class PilotoService {
     public Piloto atualizarPiloto(Long id, PilotoDTO pilotoAtualizado) {
 
         Piloto pilotoExistente = pilotoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Piloto não encontrado"));
+                .orElseThrow(() -> new NotFoundPilotoException());
 
         pilotoExistente.setNome(pilotoAtualizado.nome());
         pilotoExistente.setStatus(PilotoStatus.valueOf(pilotoAtualizado.status()));

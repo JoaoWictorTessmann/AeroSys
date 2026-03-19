@@ -25,13 +25,5 @@ public record VooRequest(
     @NotNull(message = "Horário de partida previsto é obrigatório")
     LocalDateTime horarioPartidaPrevisto,
 
-    @NotNull(message = "Horário de chegada previsto é obrigatório")
-    LocalDateTime horarioChegadaPrevisto,
-
-    LocalDateTime horarioPartidaReal,
-    LocalDateTime horarioChegadaReal,
-    String motivoCancelamento,
-
-    @NotNull(message = "Status é obrigatório")
-    String status
+    LocalDateTime horarioChegadaPrevisto
 ) {}

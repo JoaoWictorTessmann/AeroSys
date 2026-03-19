@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import sistema.aeroporto.dto.request.CompanhiaAereaRequest;
 import sistema.aeroporto.dto.request.PilotoRequest;
 import sistema.aeroporto.dto.request.VooRequest;
+import sistema.aeroporto.dto.request.VooUpdateRequest;
 import sistema.aeroporto.dto.response.CompanhiaAereaResponse;
 import sistema.aeroporto.dto.response.PilotoResponse;
 import sistema.aeroporto.dto.response.VooResponse;
@@ -34,12 +35,12 @@ public class VooServiceIntegrationTest {
 
     private PilotoResponse criarPilotoAtivo(String nome, String cpf) {
         return pilotoService.salvarPiloto(
-                new PilotoRequest(nome, 30, "M", cpf, null, "PPL", null, "ATIVO"));
+                new PilotoRequest(nome, 30, "M", cpf, null, "PPL", "ATIVO"));
     }
 
     private PilotoResponse criarPilotoInativo(String nome, String cpf) {
         return pilotoService.salvarPiloto(
-                new PilotoRequest(nome, 30, "M", cpf, null, "PPL", null, "INATIVO"));
+                new PilotoRequest(nome, 30, "M", cpf, null, "PPL", "INATIVO"));
     }
 
     private CompanhiaAereaResponse criarCompanhiaAtiva(String nome, String cnpj) {
@@ -52,11 +53,10 @@ public class VooServiceIntegrationTest {
                 new CompanhiaAereaRequest(nome, cnpj, null, true, "INATIVA"));
     }
 
-    // VooRequest agora usa pilotoId e companhiaId diretamente
     private VooRequest montarVooRequest(Long pilotoId, Long companhiaId,
             String codigo, String origem, String destino, LocalDateTime horario) {
         return new VooRequest(pilotoId, companhiaId, codigo, origem, destino,
-                horario, horario.plusHours(4), null, null, null, null);
+                horario, horario.plusHours(4));
     }
 
     @Test
@@ -65,10 +65,8 @@ public class VooServiceIntegrationTest {
         var piloto    = criarPilotoAtivo("João", "111.444.777-35");
         var companhia = criarCompanhiaAtiva("Azul", "05.451.308/0001-77");
 
-        VooRequest request = montarVooRequest(piloto.id(), companhia.id(),
-                "AZ1234", "GRU", "JFK", LocalDateTime.now().plusHours(2));
-
-        VooResponse voo = vooService.criarVoo(request);
+        VooResponse voo = vooService.criarVoo(montarVooRequest(piloto.id(), companhia.id(),
+                "AZ1234", "GRU", "JFK", LocalDateTime.now().plusHours(2)));
 
         assertEquals("AZ1234", voo.codigo());
     }
@@ -292,13 +290,10 @@ public class VooServiceIntegrationTest {
         VooResponse voo = vooService.criarVoo(montarVooRequest(piloto.id(), companhia.id(),
                 "VOO600", "GRU", "GIG", LocalDateTime.now().plusHours(5)));
 
-        VooRequest atualizacao = new VooRequest(
-                piloto.id(), companhia.id(), "VOO600", "GRU", "GIG",
-                LocalDateTime.now().plusHours(5),
-                LocalDateTime.now().plusHours(9),
+        VooUpdateRequest atualizacao = new VooUpdateRequest(
                 LocalDateTime.now().plusHours(6),
                 LocalDateTime.now().plusHours(10),
-                null, "CONCLUIDO");
+                "CONCLUIDO");
 
         VooResponse retorno = vooService.atualizarVoo(voo.id(), atualizacao);
 
@@ -308,10 +303,10 @@ public class VooServiceIntegrationTest {
     @Test
     @DisplayName("Deve lançar erro ao atualizar voo inexistente")
     void deveLancarErroAtualizarVooNaoEncontrado() {
-        VooRequest request = new VooRequest(1L, 1L, "VOO999", "GRU", "GIG",
-                LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5),
-                LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5),
-                null, "CONCLUIDO");
+        VooUpdateRequest request = new VooUpdateRequest(
+                LocalDateTime.now().plusHours(1),
+                LocalDateTime.now().plusHours(5),
+                "CONCLUIDO");
 
         RuntimeException e = assertThrows(RuntimeException.class,
                 () -> vooService.atualizarVoo(999L, request));

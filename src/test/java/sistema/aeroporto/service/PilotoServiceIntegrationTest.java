@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import jakarta.transaction.Transactional;
 import sistema.aeroporto.dto.request.PilotoRequest;
+import sistema.aeroporto.dto.request.PilotoUpdateRequest;
 import sistema.aeroporto.dto.response.PilotoResponse;
 
 @SpringBootTest
@@ -23,8 +24,8 @@ public class PilotoServiceIntegrationTest {
     @Test
     @DisplayName("Deve listar todos os pilotos do banco")
     void deveListarTodosPilotos() {
-        PilotoRequest p1 = new PilotoRequest("João Silva", 35, "1", "549.909.720-82", null, "ATPL", "MAT123", "ATIVO");
-        PilotoRequest p2 = new PilotoRequest("Maria Silva", 25, "2", "557.271.330-92", null, "ATPL2", "MAT125", "ATIVO");
+        PilotoRequest p1 = new PilotoRequest("João Silva", 35, "1", "549.909.720-82", null, "ATPL", "ATIVO");
+        PilotoRequest p2 = new PilotoRequest("Maria Silva", 25, "2", "557.271.330-92", null, "ATPL2", "ATIVO");
 
         pilotoService.salvarPiloto(p1);
         pilotoService.salvarPiloto(p2);
@@ -32,14 +33,14 @@ public class PilotoServiceIntegrationTest {
         List<PilotoResponse> lista = pilotoService.listarTodosPilotos();
 
         assertEquals(2, lista.size());
-        assertEquals("João Silva",  lista.get(0).nome());
+        assertEquals("João Silva", lista.get(0).nome());
         assertEquals("Maria Silva", lista.get(1).nome());
     }
 
     @Test
     @DisplayName("Deve buscar piloto por CPF existente")
     void deveBuscarPorCpfExistente() {
-        PilotoRequest request = new PilotoRequest("João", 40, "1", "111.444.777-35", null, "ATPL", "MAT001", "ATIVO");
+        PilotoRequest request = new PilotoRequest("João", 40, "1", "111.444.777-35", null, "ATPL", "ATIVO");
         pilotoService.salvarPiloto(request);
 
         PilotoResponse response = pilotoService.buscarPorCpf("11144477735");
@@ -62,7 +63,7 @@ public class PilotoServiceIntegrationTest {
     @Test
     @DisplayName("Deve salvar piloto gerando matrícula automaticamente")
     void deveSalvarPilotoGerandoMatricula() {
-        PilotoRequest request = new PilotoRequest("Carlos", 38, "1", "111.444.777-35", null, "ATPL", null, "ATIVO");
+        PilotoRequest request = new PilotoRequest("Carlos", 38, "1", "111.444.777-35", null, "ATPL", "ATIVO");
 
         PilotoResponse response = pilotoService.salvarPiloto(request);
 
@@ -77,7 +78,7 @@ public class PilotoServiceIntegrationTest {
     @Test
     @DisplayName("Deve deletar piloto")
     void deveDeletarPiloto() {
-        PilotoRequest request = new PilotoRequest("Carlos", 38, "1", "111.444.777-35", null, "ATPL", "MAT123", "ATIVO");
+        PilotoRequest request = new PilotoRequest("Carlos", 38, "1", "111.444.777-35", null, "ATPL", "ATIVO");
         PilotoResponse salvo = pilotoService.salvarPiloto(request);
 
         assertDoesNotThrow(() -> pilotoService.deletarPiloto(salvo.id()));
@@ -92,11 +93,11 @@ public class PilotoServiceIntegrationTest {
     @Test
     @DisplayName("Deve atualizar piloto")
     void deveAtualizarPiloto() {
-        PilotoRequest original    = new PilotoRequest("Carlos", 38, "1", "111.444.777-35", null, "ATPL", "MAT123", "ATIVO");
-        PilotoResponse salvo      = pilotoService.salvarPiloto(original);
+        PilotoRequest original = new PilotoRequest("Carlos", 38, "1", "111.444.777-35", null, "ATPL", "ATIVO");
+        PilotoResponse salvo = pilotoService.salvarPiloto(original);
 
-        PilotoRequest atualizado  = new PilotoRequest("Carlos Silva", 38, "1", "111.444.777-35", null, "ATPL", "MAT123", "ATIVO");
-        PilotoResponse editado    = pilotoService.atualizarPiloto(salvo.id(), atualizado);
+        PilotoUpdateRequest atualizado = new PilotoUpdateRequest("Carlos Silva", 38, "1", null, "ATPL", "ATIVO");
+        PilotoResponse editado = pilotoService.atualizarPiloto(salvo.id(), atualizado);
 
         assertNotNull(editado);
         assertEquals("Carlos Silva", editado.nome());
@@ -105,7 +106,7 @@ public class PilotoServiceIntegrationTest {
     @Test
     @DisplayName("Deve retornar erro ao atualizar piloto inexistente")
     void deveRetornarErroAoAtualizarPilotoInexistente() {
-        PilotoRequest request = new PilotoRequest("Carlos Silva", 38, "1", "111.444.777-35", null, "ATPL", "MAT123", "ATIVO");
+        PilotoUpdateRequest request = new PilotoUpdateRequest("Carlos Silva", 38, "1", null, "ATPL", "ATIVO");
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,

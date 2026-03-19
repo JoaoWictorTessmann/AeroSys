@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import sistema.aeroporto.dto.request.PilotoRequest;
+import sistema.aeroporto.dto.request.PilotoUpdateRequest;
 import sistema.aeroporto.dto.response.PilotoResponse;
 import sistema.aeroporto.model.Piloto;
 import sistema.aeroporto.model.enums.PilotoStatus;
@@ -76,7 +77,7 @@ public class PilotoServiceTeste {
 
     @Test
     void deveSalvarPilotoGerandoMatricula() {
-        PilotoRequest request = new PilotoRequest("Teste", 35, "1", "11144477735", null, "ATPL", null, "ATIVO");
+        PilotoRequest request = new PilotoRequest("Teste", 35, "1", "11144477735", null, "ATPL", "ATIVO");
 
         Piloto salvo = pilotoEntidade(10L, "Teste", "11144477735");
         salvo.setMatricula("PIL" + java.time.LocalDate.now().getYear() + "0010");
@@ -91,6 +92,7 @@ public class PilotoServiceTeste {
 
     @Test
     void deveDeletarPiloto() {
+        when(pilotoRepository.existsById(1L)).thenReturn(true); 
         doNothing().when(pilotoRepository).deleteById(1L);
 
         pilotoService.deletarPiloto(1L);
@@ -102,9 +104,10 @@ public class PilotoServiceTeste {
     void deveAtualizarPiloto() {
         Piloto existente = pilotoEntidade(1L, "Carlos", "11144477735");
 
-        PilotoRequest request = new PilotoRequest("Carlos", 40, "1", "11144477735", null, "ATPL", "MAT123", "ATIVO");
+        PilotoUpdateRequest request = new PilotoUpdateRequest("Carlos", 40, "1", null, "ATPL", "ATIVO");
 
         when(pilotoRepository.findById(1L)).thenReturn(Optional.of(existente));
+        when(pilotoRepository.findByNome("Carlos")).thenReturn(Optional.of(existente));
         when(pilotoRepository.save(any(Piloto.class))).thenReturn(existente);
 
         PilotoResponse result = pilotoService.atualizarPiloto(1L, request);
@@ -114,7 +117,7 @@ public class PilotoServiceTeste {
 
     @Test
     void deveLancarExcecaoAoAtualizarPilotoInexistente() {
-        PilotoRequest request = new PilotoRequest("Carlos", 40, "1", "11144477735", null, "ATPL", "MAT123", "ATIVO");
+        PilotoUpdateRequest request = new PilotoUpdateRequest("Carlos", 40, "1", null, "ATPL", "ATIVO");
 
         when(pilotoRepository.findById(2L)).thenReturn(Optional.empty());
 

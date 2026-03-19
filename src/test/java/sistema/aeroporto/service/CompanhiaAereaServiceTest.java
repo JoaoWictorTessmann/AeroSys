@@ -15,6 +15,7 @@ import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import sistema.aeroporto.dto.request.CompanhiaAereaRequest;
+import sistema.aeroporto.dto.request.CompanhiaAereaUpdateRequest;
 import sistema.aeroporto.dto.response.CompanhiaAereaResponse;
 import sistema.aeroporto.model.CompanhiaAerea;
 import sistema.aeroporto.model.enums.CompanhiaAereaStatus;
@@ -99,7 +100,7 @@ public class CompanhiaAereaServiceTest {
 
     @Test
     void deveSalvarCompanhiaComCnpjValido() {
-        String cnpj = "28.818.940/0001-01";
+        String cnpj = "28818940000101";
         CompanhiaAereaRequest request = new CompanhiaAereaRequest("Azul", cnpj, null, true, "ATIVA");
 
         CompanhiaAerea entidade = new CompanhiaAerea();
@@ -138,7 +139,7 @@ public class CompanhiaAereaServiceTest {
 
     @Test
     void deveFalharAoSalvarCompanhiaComCnpjDuplicado() {
-        String cnpj = "28.818.940/0001-01";
+        String cnpj = "28818940000101";
         CompanhiaAereaRequest request = new CompanhiaAereaRequest("Azul", cnpj, null, true, "ATIVA");
 
         try (MockedStatic<CnpjUtils> mock = mockStatic(CnpjUtils.class)) {
@@ -178,9 +179,9 @@ public class CompanhiaAereaServiceTest {
         existente.setNome("Azul");
         existente.setCnpj("40510225000102");
         existente.setSeguroAeronave(true);
-        existente.setStatus(CompanhiaAereaStatus.INATIVA); // save devolve já atualizado
+        existente.setStatus(CompanhiaAereaStatus.INATIVA);
 
-        CompanhiaAereaRequest request = new CompanhiaAereaRequest("Azul", "40510225000102", null, true, "INATIVA");
+        CompanhiaAereaUpdateRequest request = new CompanhiaAereaUpdateRequest("Azul", true, "INATIVA");
 
         when(companhiaRepository.findById(1L)).thenReturn(Optional.of(existente));
         when(companhiaRepository.save(any(CompanhiaAerea.class))).thenReturn(existente);
@@ -192,7 +193,7 @@ public class CompanhiaAereaServiceTest {
 
     @Test
     void deveFalharAoAtualizarCompanhiaInexistente() {
-        CompanhiaAereaRequest request = new CompanhiaAereaRequest("Azul", "40510225000102", null, true, "ATIVA");
+        CompanhiaAereaUpdateRequest request = new CompanhiaAereaUpdateRequest("Azul", true, "ATIVA");
 
         when(companhiaRepository.findById(1L)).thenReturn(Optional.empty());
 

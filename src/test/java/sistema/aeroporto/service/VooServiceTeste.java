@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import sistema.aeroporto.dto.request.VooRequest;
+import sistema.aeroporto.dto.request.VooUpdateRequest;
 import sistema.aeroporto.dto.response.VooResponse;
 import sistema.aeroporto.model.CompanhiaAerea;
 import sistema.aeroporto.model.Piloto;
@@ -68,20 +69,14 @@ public class VooServiceTeste {
         companhiaAtiva.setNome("Azul");
         companhiaAtiva.setStatus(CompanhiaAereaStatus.ATIVA);
 
-        // VooRequest agora usa IDs diretamente
+        // VooRequest sem campos de update
         vooRequest = new VooRequest(
                 PILOTO_ID, COMPANHIA_ID,
                 CODIGO_VOO,
                 "São Paulo", "Rio de Janeiro",
                 LocalDateTime.now().plusHours(2),
-                LocalDateTime.now().plusHours(4),
-                null, null, null,
-                VooStatus.AGENDADO.name());
+                LocalDateTime.now().plusHours(4));
     }
-
-    // =========================================================================
-    // criarVoo
-    // =========================================================================
 
     @Test
     void deveCriarVooComSucesso() {
@@ -119,8 +114,7 @@ public class VooServiceTeste {
     void deveLancarErroQuandoOrigemIgualDestino() {
         VooRequest invalido = new VooRequest(PILOTO_ID, COMPANHIA_ID, CODIGO_VOO,
                 "Rio de Janeiro", "Rio de Janeiro",
-                LocalDateTime.now().plusHours(2), LocalDateTime.now().plusHours(4),
-                null, null, null, null);
+                LocalDateTime.now().plusHours(2), LocalDateTime.now().plusHours(4));
 
         RuntimeException e = assertThrows(RuntimeException.class,
                 () -> vooService.criarVoo(invalido));
@@ -132,8 +126,7 @@ public class VooServiceTeste {
     void deveLancarErroQuandoHorarioNoPassado() {
         VooRequest invalido = new VooRequest(PILOTO_ID, COMPANHIA_ID, CODIGO_VOO,
                 "São Paulo", "Rio de Janeiro",
-                LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(2),
-                null, null, null, null);
+                LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(2));
 
         RuntimeException e = assertThrows(RuntimeException.class,
                 () -> vooService.criarVoo(invalido));
@@ -196,10 +189,6 @@ public class VooServiceTeste {
         assertEquals("Código de voo já existente", e.getMessage());
     }
 
-    // =========================================================================
-    // iniciarVoo
-    // =========================================================================
-
     @Test
     void deveIniciarVooComSucesso() {
         Voo voo = new Voo();
@@ -257,10 +246,6 @@ public class VooServiceTeste {
         assertEquals("Somente voos agendados podem ser iniciados", e.getMessage());
     }
 
-    // =========================================================================
-    // cancelarVoo
-    // =========================================================================
-
     @Test
     void deveCancelarVooComSucesso() {
         Voo voo = new Voo();
@@ -295,10 +280,6 @@ public class VooServiceTeste {
 
         assertEquals("Voo não encontrado", e.getMessage());
     }
-
-    // =========================================================================
-    // listarTodos / buscarPorStatus / buscarPorPiloto / buscarPorCompanhia
-    // =========================================================================
 
     @Test
     void deveListarTodosVoos() {
@@ -336,6 +317,7 @@ public class VooServiceTeste {
         voo.setCompanhia(companhiaAtiva);
         voo.setStatus(VooStatus.AGENDADO);
 
+        when(pilotoRepository.existsById(PILOTO_ID)).thenReturn(true);
         when(vooRepository.findByPiloto_Id(PILOTO_ID)).thenReturn(List.of(voo));
 
         List<VooResponse> encontrados = vooService.buscarPorPiloto(PILOTO_ID);
@@ -350,16 +332,13 @@ public class VooServiceTeste {
         voo.setCompanhia(companhiaAtiva);
         voo.setStatus(VooStatus.AGENDADO);
 
+        when(companhiaAereaRepository.existsById(COMPANHIA_ID)).thenReturn(true);
         when(vooRepository.findByCompanhia_Id(COMPANHIA_ID)).thenReturn(List.of(voo));
 
         List<VooResponse> encontrados = vooService.buscarPorCompanhia(COMPANHIA_ID);
 
         assertEquals(1, encontrados.size());
     }
-
-    // =========================================================================
-    // atualizarVoo
-    // =========================================================================
 
     @Test
     void deveAtualizarVooComSucesso() {
@@ -369,11 +348,10 @@ public class VooServiceTeste {
         vooExistente.setPiloto(pilotoAtivo);
         vooExistente.setCompanhia(companhiaAtiva);
 
-        VooRequest request = new VooRequest(PILOTO_ID, COMPANHIA_ID, CODIGO_VOO,
-                "São Paulo", "Rio de Janeiro",
-                LocalDateTime.now().plusHours(2), LocalDateTime.now().plusHours(6),
-                LocalDateTime.now().plusHours(6), LocalDateTime.now().plusHours(10),
-                null, "CONCLUIDO");
+        VooUpdateRequest request = new VooUpdateRequest(
+                LocalDateTime.now().plusHours(6),
+                LocalDateTime.now().plusHours(10),
+                "CONCLUIDO");
 
         when(vooRepository.findById(5L)).thenReturn(Optional.of(vooExistente));
         when(vooRepository.save(any(Voo.class))).thenAnswer(i -> i.getArgument(0));
@@ -385,11 +363,10 @@ public class VooServiceTeste {
 
     @Test
     void deveLancarErroAtualizarVooNaoEncontrado() {
-        VooRequest request = new VooRequest(PILOTO_ID, COMPANHIA_ID, CODIGO_VOO,
-                "São Paulo", "Rio de Janeiro",
-                LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5),
-                LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5),
-                null, "CONCLUIDO");
+        VooUpdateRequest request = new VooUpdateRequest(
+                LocalDateTime.now().plusHours(1),
+                LocalDateTime.now().plusHours(5),
+                "CONCLUIDO");
 
         when(vooRepository.findById(99L)).thenReturn(Optional.empty());
 

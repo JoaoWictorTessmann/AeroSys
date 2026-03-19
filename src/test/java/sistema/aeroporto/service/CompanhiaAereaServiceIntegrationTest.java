@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import jakarta.transaction.Transactional;
 import sistema.aeroporto.dto.request.CompanhiaAereaRequest;
+import sistema.aeroporto.dto.request.CompanhiaAereaUpdateRequest;
 import sistema.aeroporto.dto.response.CompanhiaAereaResponse;
 import sistema.aeroporto.model.enums.CompanhiaAereaStatus;
 
@@ -26,7 +27,7 @@ public class CompanhiaAereaServiceIntegrationTest {
     @DisplayName("Deve listar todas as companhias do banco")
     void deveListarTodasCompanhias() {
         CompanhiaAereaRequest azul = new CompanhiaAereaRequest("Azul", "63.141.461/0001-02", null, true, "ATIVA");
-        CompanhiaAereaRequest gol  = new CompanhiaAereaRequest("Gol",  "81.797.711/0001-30", null, true, "ATIVA");
+        CompanhiaAereaRequest gol = new CompanhiaAereaRequest("Gol", "81.797.711/0001-30", null, true, "ATIVA");
 
         companhiaAereaService.salvarCompanhia(azul);
         companhiaAereaService.salvarCompanhia(gol);
@@ -35,7 +36,7 @@ public class CompanhiaAereaServiceIntegrationTest {
 
         assertEquals(2, lista.size());
         assertEquals("Azul", lista.get(0).nome());
-        assertEquals("Gol",  lista.get(1).nome());
+        assertEquals("Gol", lista.get(1).nome());
     }
 
     @Test
@@ -70,7 +71,7 @@ public class CompanhiaAereaServiceIntegrationTest {
 
         CompanhiaAereaResponse response = companhiaAereaService.buscarPorCnpj("63.141.461/0001-02");
 
-        assertEquals("63.141.461/0001-02", response.cnpj());
+        assertEquals("63141461000102", response.cnpj());
     }
 
     @Test
@@ -93,7 +94,7 @@ public class CompanhiaAereaServiceIntegrationTest {
 
         CompanhiaAereaResponse response = companhiaAereaService.salvarCompanhia(request);
 
-        assertEquals("55.044.476/0001-16", response.cnpj());
+        assertEquals("55044476000116", response.cnpj());
     }
 
     @Test
@@ -154,19 +155,19 @@ public class CompanhiaAereaServiceIntegrationTest {
         CompanhiaAereaRequest original = new CompanhiaAereaRequest("Azul", "63.141.461/0001-02", null, true, "ATIVA");
         CompanhiaAereaResponse salva = companhiaAereaService.salvarCompanhia(original);
 
-        CompanhiaAereaRequest atualizacao = new CompanhiaAereaRequest("Azul", "63.141.461/0001-02", null, true, "INATIVA");
+        CompanhiaAereaUpdateRequest atualizacao = new CompanhiaAereaUpdateRequest("Azul", true, "INATIVA");
         CompanhiaAereaResponse result = companhiaAereaService.atualizarCompanhia(salva.id(), atualizacao);
 
         assertEquals(salva.id(), result.id());
         assertEquals("Azul", result.nome());
-        assertEquals("63.141.461/0001-02", result.cnpj());
+        assertEquals("63141461000102", result.cnpj());
         assertEquals(CompanhiaAereaStatus.INATIVA.name(), result.status());
     }
 
     @Test
     @DisplayName("Deve falhar ao atualizar companhia inexistente")
     void deveFalharAoAtualizarCompanhiaInexistente() {
-        CompanhiaAereaRequest request = new CompanhiaAereaRequest("Azul", "63.141.461/0001-02", null, true, "INATIVA");
+        CompanhiaAereaUpdateRequest request = new CompanhiaAereaUpdateRequest("Azul", true, "INATIVA");
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,

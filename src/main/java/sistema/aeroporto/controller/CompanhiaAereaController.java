@@ -19,7 +19,7 @@ import sistema.aeroporto.dto.response.CompanhiaAereaResponse;
 import sistema.aeroporto.service.CompanhiaAereaService;
 
 @RestController
-@RequestMapping("/companhias")
+@RequestMapping("/api/companhias")
 @Tag(name = "Companhias Aéreas", description = "Gerenciamento de companhias aéreas — cadastro, consulta, atualização e remoção")
 public class CompanhiaAereaController {
 

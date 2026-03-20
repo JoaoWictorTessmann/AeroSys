@@ -20,7 +20,7 @@ import sistema.aeroporto.dto.response.VooResponse;
 import sistema.aeroporto.service.VooService;
 
 @RestController
-@RequestMapping("/voos")
+@RequestMapping("/api/voos")
 @Tag(name = "Voos", description = "Gerenciamento de voos — criação, consulta, atualização, início e cancelamento")
 public class VooController {
 
@@ -38,7 +38,7 @@ public class VooController {
         return ResponseEntity.status(201).body(vooService.criarVoo(request));
     }
 
-    @Operation(summary = "Atualizar dados do voo", description = "Atualiza horário de partida real, horário de chegada real e/ou status do voo. Usado normalmente para concluir ou registrar atrasos.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "2")))
+    @Operation(summary = "Atualizar dados do voo", description = "Atualiza horário de partida real, horário de chegada real e/ou status do voo.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "2")))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Voo atualizado com sucesso"),
             @ApiResponse(responseCode = "404", description = "Voo não encontrado")
@@ -50,7 +50,7 @@ public class VooController {
         return ResponseEntity.ok(vooService.atualizarVoo(vooId, request));
     }
 
-    @Operation(summary = "Iniciar voo", description = "Marca o voo como EM_VOO e registra o horário de partida real. O voo precisa estar com status AGENDADO e o piloto deve estar ativo.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "3")))
+    @Operation(summary = "Iniciar voo", description = "Marca o voo como EM_VOO e registra o horário de partida real.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "3")))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Voo iniciado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Voo não está agendado ou piloto está inativo"),
@@ -62,19 +62,18 @@ public class VooController {
         return ResponseEntity.ok(vooService.iniciarVoo(vooId));
     }
 
-    @Operation(summary = "Finalizar voo", description = "Finaliza um voo que está em andamento", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "4")))
+    @Operation(summary = "Finalizar voo", description = "Finaliza um voo que está em andamento.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "4")))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Voo finalizado com sucesso"),
             @ApiResponse(responseCode = "404", description = "Voo não encontrado"),
             @ApiResponse(responseCode = "409", description = "Voo não está em andamento")
     })
-
     @PatchMapping("/{id}/finalizar")
     public ResponseEntity<VooResponse> finalizarVoo(@PathVariable Long id) {
         return ResponseEntity.ok(vooService.finalizarVoo(id));
     }
 
-    @Operation(summary = "Cancelar voo", description = "Cancela um voo informando obrigatoriamente o motivo. Ex: ?motivoCancelamento=Mau tempo", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "5")))
+    @Operation(summary = "Cancelar voo", description = "Cancela um voo informando obrigatoriamente o motivo.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "5")))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Voo cancelado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Motivo de cancelamento não informado"),
@@ -87,14 +86,14 @@ public class VooController {
         return ResponseEntity.ok(vooService.cancelarVoo(vooId, motivoCancelamento));
     }
 
-    @Operation(summary = "Listar todos os voos", description = "Retorna a lista completa de voos cadastrados, com dados de piloto e companhia embutidos.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "6")))
+    @Operation(summary = "Listar todos os voos", description = "Retorna a lista completa de voos cadastrados.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "6")))
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @GetMapping
     public ResponseEntity<List<VooResponse>> listarTodos() {
         return ResponseEntity.ok(vooService.listarTodos());
     }
 
-    @Operation(summary = "Buscar voo por ID", description = "Retorna os detalhes completos de um voo específico pelo seu identificador.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "7")))
+    @Operation(summary = "Buscar voo por ID", description = "Retorna os detalhes completos de um voo específico.", extensions = @Extension(properties = @ExtensionProperty(name = "x-order", value = "7")))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Voo encontrado"),
             @ApiResponse(responseCode = "404", description = "Voo não encontrado")
@@ -109,7 +108,7 @@ public class VooController {
     @ApiResponse(responseCode = "200", description = "Lista de voos com o status informado")
     @GetMapping("/status/{status}")
     public ResponseEntity<List<VooResponse>> buscarPorStatus(
-            @Parameter(description = "Status do voo. Ex: AGENDADO, EM_VOO, CONCLUIDO, CANCELADO") @PathVariable String status) {
+            @Parameter(description = "Status do voo") @PathVariable String status) {
         return ResponseEntity.ok(vooService.buscarPorStatus(status));
     }
 

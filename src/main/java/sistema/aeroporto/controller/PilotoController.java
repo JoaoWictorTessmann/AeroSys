@@ -19,7 +19,7 @@ import sistema.aeroporto.dto.response.PilotoResponse;
 import sistema.aeroporto.service.PilotoService;
 
 @RestController
-@RequestMapping("/pilotos")
+@RequestMapping("/api/pilotos")
 @Tag(name = "Pilotos", description = "Gerenciamento de pilotos — cadastro, consulta, atualização e remoção")
 public class PilotoController {
 

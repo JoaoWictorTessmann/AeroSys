@@ -71,7 +71,7 @@ public class CompanhiaAereaServiceIntegrationTest {
 
         CompanhiaAereaResponse response = companhiaAereaService.buscarPorCnpj("63.141.461/0001-02");
 
-        assertEquals("63141461000102", response.cnpj());
+        assertEquals("63.141.461/0001-02", response.cnpj());
     }
 
     @Test
@@ -94,7 +94,7 @@ public class CompanhiaAereaServiceIntegrationTest {
 
         CompanhiaAereaResponse response = companhiaAereaService.salvarCompanhia(request);
 
-        assertEquals("55044476000116", response.cnpj());
+        assertEquals("55.044.476/0001-16", response.cnpj());
     }
 
     @Test
@@ -160,7 +160,7 @@ public class CompanhiaAereaServiceIntegrationTest {
 
         assertEquals(salva.id(), result.id());
         assertEquals("Azul", result.nome());
-        assertEquals("63141461000102", result.cnpj());
+        assertEquals("63.141.461/0001-02", result.cnpj());
         assertEquals(CompanhiaAereaStatus.INATIVA.name(), result.status());
     }
 

@@ -47,7 +47,7 @@ public class PilotoServiceIntegrationTest {
 
         assertNotNull(response);
         assertEquals("João", response.nome());
-        assertEquals("11144477735", response.cpf());
+        assertEquals("111.444.777-35", response.cpf());
     }
 
     @Test
@@ -69,7 +69,7 @@ public class PilotoServiceIntegrationTest {
 
         assertNotNull(response);
         assertEquals("Carlos", response.nome());
-        assertEquals("11144477735", response.cpf());
+        assertEquals("111.444.777-35", response.cpf());
         assertNotNull(response.matricula());
         assertFalse(response.matricula().isBlank());
         assertTrue(response.matricula().startsWith("PIL"));

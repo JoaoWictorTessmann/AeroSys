@@ -85,7 +85,7 @@ public class CompanhiaAereaServiceTest {
 
         CompanhiaAereaResponse result = companhiaService.buscarPorCnpj("12345678000199");
 
-        assertEquals("12345678000199", result.cnpj());
+        assertEquals("12.345.678/0001-99", result.cnpj());
     }
 
     @Test
@@ -112,6 +112,7 @@ public class CompanhiaAereaServiceTest {
 
         try (MockedStatic<CnpjUtils> mock = mockStatic(CnpjUtils.class)) {
             mock.when(() -> CnpjUtils.validarCnpj(cnpj)).thenReturn(true);
+            mock.when(() -> CnpjUtils.formatar(cnpj)).thenReturn(cnpj);
             when(companhiaRepository.existsByCnpj(cnpj)).thenReturn(false);
             when(companhiaRepository.existsByNome("Azul")).thenReturn(false);
             when(companhiaRepository.save(any(CompanhiaAerea.class))).thenReturn(entidade);

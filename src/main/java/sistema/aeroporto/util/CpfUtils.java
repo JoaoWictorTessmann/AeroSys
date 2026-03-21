@@ -4,7 +4,8 @@ public class CpfUtils {
 
     // Remove caracteres que não sejam números
     public static String limpar(String cpf) {
-        if (cpf == null) return null;
+        if (cpf == null)
+            return null;
         return cpf.replaceAll("\\D", "");
     }
 
@@ -51,5 +52,12 @@ public class CpfUtils {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static String formatar(String cpf) {
+        if (cpf == null)
+            return "";
+        String numeros = cpf.replaceAll("\\D", "");
+        return numeros.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
     }
 }

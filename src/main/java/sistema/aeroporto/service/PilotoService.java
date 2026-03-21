@@ -34,7 +34,7 @@ public class PilotoService {
                 p.getNome(),
                 p.getIdade(),
                 p.getGenero(),
-                p.getCpf(),
+                CpfUtils.formatar(p.getCpf()),
                 p.getDataRenovacao(),
                 p.getMatricula(),
                 p.getHabilitacao(),

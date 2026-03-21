@@ -28,7 +28,7 @@ public class CompanhiaAereaService {
         return new CompanhiaAereaResponse(
                 c.getId(),
                 c.getNome(),
-                c.getCnpj(),
+                CnpjUtils.formatar(c.getCnpj()),
                 c.getDataFundacao(),
                 c.getSeguroAeronave(),
                 c.getStatus().name());

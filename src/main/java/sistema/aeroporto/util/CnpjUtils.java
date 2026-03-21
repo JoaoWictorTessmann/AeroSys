@@ -4,11 +4,13 @@ public class CnpjUtils {
     public static boolean validarCnpj(String cnpj) {
         cnpj = cnpj.replaceAll("\\D", "");
 
-        if (cnpj.length() != 14) return false;
-        if (cnpj.chars().distinct().count() == 1) return false;
+        if (cnpj.length() != 14)
+            return false;
+        if (cnpj.chars().distinct().count() == 1)
+            return false;
 
-        int[] peso1 = {5,4,3,2,9,8,7,6,5,4,3,2};
-        int[] peso2 = {6,5,4,3,2,9,8,7,6,5,4,3,2};
+        int[] peso1 = { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+        int[] peso2 = { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
 
         try {
             int soma = 0;
@@ -26,9 +28,16 @@ public class CnpjUtils {
             int digito2 = (mod < 2) ? 0 : 11 - mod;
 
             return digito1 == Character.getNumericValue(cnpj.charAt(12)) &&
-                   digito2 == Character.getNumericValue(cnpj.charAt(13));
+                    digito2 == Character.getNumericValue(cnpj.charAt(13));
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static String formatar(String cnpj) {
+        if (cnpj == null)
+            return "";
+        String numeros = cnpj.replaceAll("\\D", "");
+        return numeros.replaceAll("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})", "$1.$2.$3/$4-$5");
     }
 }

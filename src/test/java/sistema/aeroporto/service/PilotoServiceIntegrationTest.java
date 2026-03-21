@@ -24,6 +24,7 @@ public class PilotoServiceIntegrationTest {
     @Test
     @DisplayName("Deve listar todos os pilotos do banco")
     void deveListarTodosPilotos() {
+        int tamanhoAntes = pilotoService.listarTodosPilotos().size();
         PilotoRequest p1 = new PilotoRequest("João Silva", 35, "1", "549.909.720-82", null, "ATPL", "ATIVO");
         PilotoRequest p2 = new PilotoRequest("Maria Silva", 25, "2", "557.271.330-92", null, "ATPL2", "ATIVO");
 
@@ -32,9 +33,9 @@ public class PilotoServiceIntegrationTest {
 
         List<PilotoResponse> lista = pilotoService.listarTodosPilotos();
 
-        assertEquals(2, lista.size());
-        assertEquals("João Silva", lista.get(0).nome());
-        assertEquals("Maria Silva", lista.get(1).nome());
+        assertEquals(tamanhoAntes + 2, lista.size());
+        assertEquals("João Silva", lista.get(tamanhoAntes).nome());
+        assertEquals("Maria Silva", lista.get(tamanhoAntes + 1).nome());
     }
 
     @Test

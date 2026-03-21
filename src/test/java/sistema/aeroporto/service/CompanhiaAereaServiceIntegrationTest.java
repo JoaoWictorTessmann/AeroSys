@@ -26,6 +26,7 @@ public class CompanhiaAereaServiceIntegrationTest {
     @Test
     @DisplayName("Deve listar todas as companhias do banco")
     void deveListarTodasCompanhias() {
+        int tamanhoAntes = companhiaAereaService.listarTodasCompanhias().size();
         CompanhiaAereaRequest azul = new CompanhiaAereaRequest("Azul", "63.141.461/0001-02", null, true, "ATIVA");
         CompanhiaAereaRequest gol = new CompanhiaAereaRequest("Gol", "81.797.711/0001-30", null, true, "ATIVA");
 
@@ -34,9 +35,9 @@ public class CompanhiaAereaServiceIntegrationTest {
 
         List<CompanhiaAereaResponse> lista = companhiaAereaService.listarTodasCompanhias();
 
-        assertEquals(2, lista.size());
-        assertEquals("Azul", lista.get(0).nome());
-        assertEquals("Gol", lista.get(1).nome());
+        assertEquals(tamanhoAntes + 2, lista.size());
+        assertEquals("Azul", lista.get(tamanhoAntes).nome());
+        assertEquals("Gol", lista.get(tamanhoAntes + 1 ).nome());
     }
 
     @Test

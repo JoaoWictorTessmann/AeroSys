@@ -201,16 +201,14 @@ public class VooServiceIntegrationTest {
         }
 
         @Test
-        @DisplayName("Deve lançar erro ao iniciar voo com piloto inativo")
-        void deveLancarErroPilotoInativoAoIniciar() {
+        @DisplayName("Deve lançar erro ao criar voo com piloto inativo")
+        void deveLancarErroPilotoInativoAoCriar() {
                 var piloto = criarPilotoInativo("Lucas", "111.444.777-35");
                 var companhia = criarCompanhiaAtiva("Latam", "05.451.308/0001-77");
 
-                VooResponse voo = vooService.criarVoo(montarVooRequest(piloto.id(), companhia.id(),
-                                "VOO400", "GRU", "MIA", LocalDateTime.now().plusHours(3)));
-
                 RuntimeException exception = assertThrows(RuntimeException.class,
-                                () -> vooService.iniciarVoo(voo.id()));
+                                () -> vooService.criarVoo(montarVooRequest(piloto.id(), companhia.id(),
+                                                "VOO400", "GRU", "MIA", LocalDateTime.now().plusHours(3))));
 
                 assertEquals("Piloto não pode iniciar o voo", exception.getMessage());
         }

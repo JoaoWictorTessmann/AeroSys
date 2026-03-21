@@ -96,7 +96,10 @@ public class VooService {
 
         Piloto piloto = pilotoRepository.findById(request.pilotoId())
                 .orElseThrow(NotFoundPilotoException::new);
-
+                
+        if (piloto.getStatus() == PilotoStatus.INATIVO) {
+            throw new PilotoInativoException();
+        }
         boolean conflito = vooRepository.findByPiloto_Id(piloto.getId()).stream()
                 .anyMatch(v -> request.horarioPartidaPrevisto().equals(v.getHorarioPartidaPrevisto()));
 
